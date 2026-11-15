@@ -49,7 +49,7 @@ export function ResumeCheckPanel({ resume, onLocate, onAddSection }: { resume: R
   </section>;
 }
 
-export function ResumeSharePanel({ url, onShare, onExport, isExporting }: { url: string; onShare: () => Promise<boolean>; onExport: (format: string) => void; isExporting: string }) {
+export function ResumeSharePanel({ url, onShare, onExport, isExporting, summary }: { summary?: string; url: string; onShare: () => Promise<boolean>; onExport: (format: string) => void; isExporting: string }) {
   const { lang, t } = useTheme();
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState('');
@@ -62,6 +62,7 @@ export function ResumeSharePanel({ url, onShare, onExport, isExporting }: { url:
   ] as const;
   return <section className="flex h-full min-w-0 flex-col gap-4 overflow-y-auto p-4" aria-label={workspaceText(lang, 'shareTitle')}>
     <div><h2 className="text-base font-semibold">{workspaceText(lang, 'shareTitle')}</h2><p className="mt-1 text-sm leading-6 text-muted-foreground">{workspaceText(lang, 'shareHelp')}</p></div>
+    {summary && <p className="rounded-md border border-border bg-muted/30 px-3 py-2 text-xs" role="status">{t('Downloads and links contain: {summary}', { summary })}</p>}
     <div className="grid gap-2">{formats.map(format => <button key={format.type} type="button" aria-label={format.label} aria-describedby={`export-${format.type}-help`} disabled={Boolean(isExporting)} onClick={() => onExport(format.type)} className="editor-share-format w-full focus-visible:outline-2 focus-visible:outline-primary disabled:opacity-60">
       {isExporting === format.type ? <Loader2 size={20} className="shrink-0 animate-spin" /> : <format.icon size={20} className="shrink-0 text-primary" />}<span><strong className="block text-sm font-medium">{format.label}</strong><span id={`export-${format.type}-help`} className="mt-1 block text-xs leading-5 text-muted-foreground">{workspaceText(lang, format.help)}</span></span>
     </button>)}</div>

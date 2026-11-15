@@ -22,3 +22,12 @@ export function applyLanguageChoice(view: string, choice: string, sourceLocale: 
   if (view === 'translate' && toSource) return { locale, view: 'edit' };
   return { locale, view };
 }
+
+/**
+ * A short reminder of what an export or share link will contain, such as "Français · Backend roles".
+ * Empty when there is nothing to choose (no translation and no active preset), so a plain resume
+ * shows no extra line.
+ */
+export function outputSummary(languageName: string, presetName: string | undefined, hasTranslations: boolean): string {
+  return [hasTranslations ? languageName : '', presetName ?? ''].filter(Boolean).join(' · ');
+}

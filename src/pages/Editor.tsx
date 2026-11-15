@@ -57,7 +57,7 @@ import { PreviewViewSelectors } from '../components/PreviewViewSelectors.tsx';
 import { TranslationTab } from '../components/TranslationTab.tsx';
 import { Dialog,DialogContent,DialogDescription,DialogFooter,DialogHeader,DialogTitle } from '../components/ui/dialog.tsx';
 import { exportWarnings } from '../lib/export-warnings.ts';
-import { effectiveLocale } from '../lib/view-rules.ts';
+import { effectiveLocale,outputSummary } from '../lib/view-rules.ts';
 import { useActiveLocale } from '../lib/use-active-locale.ts';
 import { addTranslationLocale,markTranslationCurrent,markTranslationReviewed,removeTranslationLocale,setItemSame,setItemTranslation,setProfileTranslation,setSectionLabelTranslation,setSourceLocale } from '../lib/translation-edit.ts';
 import { buildTranslationRows,isItemMarkedSame } from '../lib/translation-rows.ts';
@@ -381,6 +381,8 @@ export default function Editor({ resumeId }: {resumeId:string}) {
   // The PDF's properties: the title viewers show, the author, and the language of the text.
   const pdfMetadata = renderedResume ? { title: renderedResume.title || renderedResume.profile.name, author: renderedResume.profile.name, language: contentLang } : undefined;
   const pdfPreview = usePdfPreview(paperRef, pdfKey, pdfMetadata);
+  // Reminds what an export or a share link will contain, since the choice is made elsewhere.
+  const exportSummary = outputSummary(languageName(localeId ?? sourceLocale), presetId && resume ? findPreset(resume, presetId)?.name : undefined, translatedLocales.length > 0);
   const latestDocumentKey = useRef(pdfKey);
   latestDocumentKey.current = pdfKey;
   const selectView = (view: string) => { setActiveView(view); setPreviewOnly(false); };
@@ -707,6 +709,7 @@ export default function Editor({ resumeId }: {resumeId:string}) {
         savedAt={savedAt} dirty={dirty} saving={saving} saveError={saveError} onSave={handleSave}
         isExporting={isExporting} exportOpen={exportOpen}
         exportMenuRef={exportMenuRef}
+        exportSummary={exportSummary}
         onResumeTitle={updateTitle}
         onManager={() => setManagerOpen(true)}
         onExportToggle={() => setExportOpen((v) => !v)}
@@ -749,7 +752,7 @@ export default function Editor({ resumeId }: {resumeId:string}) {
           {activeView === 'translate' ? <TranslationTab FieldInput={VersionFieldInput} />
             : activeView === 'template' ? <TemplateStylePanel resume={resume} settings={settings} onSettings={setSettings} />
             : activeView === 'check' ? <ResumeCheckPanel resume={resume} onLocate={locateFromPreview} onAddSection={type => { const section = resume.sections.find(value => value.type === type); if (section) { updateSection(section.id, { visible: true }); locateFromPreview(section.items[0]?.id || addItem(section)); } else locateFromPreview(addSection(type)); }} />
-            : activeView === 'share' ? <ResumeSharePanel key={pdfKey} url={shareUrl} onShare={handleShare} onExport={handleExport} isExporting={isExporting} />
+            : activeView === 'share' ? <ResumeSharePanel summary={exportSummary} key={pdfKey} url={shareUrl} onShare={handleShare} onExport={handleExport} isExporting={isExporting} />
             : <EditorPanel resume={resume} activeItemId={activeItemId} onProfile={updateProfile} onAvatar={handleAvatar} onSection={updateSection} onItem={updateItem} onAddItem={section => locateFromPreview(addItem(section))} onAddSection={type => locateFromPreview(addSection(type))} onDeleteSection={deleteSection} onDeleteItem={deleteItem} onMoveSection={moveSection} onActiveItem={setActiveItemId} onCheck={handleCheck} />}
         </div>
         <div className="resume-pagination-measure" aria-hidden="true"><ContentLanguageProvider lang={contentLang}><ResumePreview resume={renderedResume ?? resume} settings={settings} refNode={paperRef} /></ContentLanguageProvider></div>
@@ -783,7 +786,7 @@ export default function Editor({ resumeId }: {resumeId:string}) {
   );
 }
 
-function TopBar({ historyControl, canUndo, canRedo, onUndo, onRedo, resume, savedAt, dirty, saving, saveError, onSave, isExporting, exportOpen, exportMenuRef, onResumeTitle, onManager, onExportToggle, onExport }: {historyControl:React.ReactNode;canUndo:boolean;canRedo:boolean;onUndo:() => void;onRedo:() => void;resume:Resume;savedAt:string;dirty:boolean;saving:boolean;saveError:string;onSave:() => void;isExporting:string;exportOpen:boolean;exportMenuRef:React.RefObject<HTMLDivElement>;onResumeTitle:(title:string) => void;onManager:() => void;onExportToggle:() => void;onExport:(type:string) => void;}) {
+function TopBar({ historyControl, canUndo, canRedo, onUndo, onRedo, resume, savedAt, dirty, saving, saveError, onSave, isExporting, exportOpen, exportMenuRef, exportSummary, onResumeTitle, onManager, onExportToggle, onExport }: {historyControl:React.ReactNode;canUndo:boolean;canRedo:boolean;onUndo:() => void;onRedo:() => void;resume:Resume;savedAt:string;dirty:boolean;saving:boolean;saveError:string;onSave:() => void;isExporting:string;exportOpen:boolean;exportMenuRef:React.RefObject<HTMLDivElement>;exportSummary:string;onResumeTitle:(title:string) => void;onManager:() => void;onExportToggle:() => void;onExport:(type:string) => void;}) {
   const { lang, t } = useTheme();
   return (
     <header className="editor-topbar flex h-14 shrink-0 items-center gap-3 border-b border-border bg-card px-3 sm:px-4">
@@ -835,6 +838,7 @@ function TopBar({ historyControl, canUndo, canRedo, onUndo, onRedo, resume, save
           </Button>
           {exportOpen && (
             <div id="resume-export-menu" role="menu" aria-label={t('Choose export format')} className="absolute right-0 top-full z-50 mt-2 w-48 overflow-hidden rounded-lg border border-border bg-popover p-1.5 text-popover-foreground shadow-lg">
+              {exportSummary && <p className="px-3 pb-1 pt-1.5 text-[10px] leading-4 text-muted-foreground">{t('Contains: {summary}', { summary: exportSummary })}</p>}
               <button role="menuitem" className="flex w-full items-center gap-2 rounded-md px-3 py-2.5 text-left text-xs font-medium transition-colors hover:bg-muted focus:bg-muted focus:outline-none" onClick={() => onExport('pdf')}><FileText size={14} className="text-muted-foreground" /> {t('Export PDF')}</button>
               <button role="menuitem" className="flex w-full items-center gap-2 rounded-md px-3 py-2.5 text-left text-xs font-medium transition-colors hover:bg-muted focus:bg-muted focus:outline-none" onClick={() => onExport('docx')}><FileText size={14} className="text-muted-foreground" /> {transferText(lang, 'word')}</button>
               <button role="menuitem" className="flex w-full items-center gap-2 rounded-md px-3 py-2.5 text-left text-xs font-medium transition-colors hover:bg-muted focus:bg-muted focus:outline-none" onClick={() => onExport('png')}><ImageDown size={14} className="text-muted-foreground" /> {t('Export image')}</button>

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { applyLanguageChoice, effectiveLocale } from '../src/lib/view-rules.ts';
+import { applyLanguageChoice, effectiveLocale, outputSummary } from '../src/lib/view-rules.ts';
 
 test('the Content tab always previews the source language, whatever translation was chosen', () => {
   assert.equal(effectiveLocale('edit', 'fr'), null);
@@ -38,4 +38,12 @@ test('picking a language from the output tabs only changes what is previewed and
 test('picking the language already shown changes nothing', () => {
   assert.deepEqual(applyLanguageChoice('edit', 'en', 'en'), { locale: null, view: 'edit' });
   assert.deepEqual(applyLanguageChoice('translate', 'fr', 'en'), { locale: 'fr', view: 'translate' });
+});
+
+test('the export reminder names the language and the preset, and is empty for a plain resume', () => {
+  assert.equal(outputSummary('Français', 'Backend roles', true), 'Français · Backend roles');
+  assert.equal(outputSummary('English', undefined, true), 'English');
+  assert.equal(outputSummary('English', 'Backend roles', false), 'Backend roles');
+  assert.equal(outputSummary('English', undefined, false), '');
+  assert.equal(outputSummary('English', '', false), '');
 });
