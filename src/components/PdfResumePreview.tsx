@@ -1,4 +1,4 @@
-import { Eye, Loader2, Maximize2, MoveHorizontal, ZoomIn, ZoomOut } from 'lucide-react';
+import { Eye, Loader2, ZoomIn, ZoomOut } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useEffect, useRef, useState } from 'react';
 import type { PDFDocumentProxy, PDFWorker, RenderTask } from 'pdfjs-dist';
@@ -84,12 +84,13 @@ export default function PdfResumePreview({ snapshot, pending, error, onRetry, ac
         {headerExtra}
       <div className="flex shrink-0 items-center gap-1">
         {shown && <span className="mr-1 text-xs tabular-nums text-muted-foreground" aria-label={t('Zoom')}>{Math.round(scale * 100)}%</span>}
-        {[
-          { icon: ZoomOut, label: 'Zoom out', pressed: undefined, action: () => setZoom(value => Math.max(MIN_ZOOM, value - 0.1)) },
-          { icon: Maximize2, label: 'Fit to screen', pressed: fit === 'page' && zoom === 1, action: () => chooseFit('page') },
-          { icon: MoveHorizontal, label: 'Fit to width', pressed: fit === 'width' && zoom === 1, action: () => chooseFit('width') },
-          { icon: ZoomIn, label: 'Zoom in', pressed: undefined, action: () => setZoom(value => Math.min(MAX_ZOOM, value + 0.1)) },
-        ].map(control => <button key={control.label} type="button" className={cn('grid h-10 w-10 place-items-center rounded-md hover:bg-muted focus-visible:outline-2 focus-visible:outline-primary', control.pressed && 'bg-muted text-primary')} title={t(control.label)} aria-label={t(control.label)} aria-pressed={control.pressed} onClick={control.action}><control.icon size={15} /></button>)}
+        <button type="button" className="grid h-10 w-10 place-items-center rounded-md hover:bg-muted focus-visible:outline-2 focus-visible:outline-primary" title={t('Zoom out')} aria-label={t('Zoom out')} onClick={() => setZoom(value => Math.max(MIN_ZOOM, value - 0.1))}><ZoomOut size={15} /></button>
+        {/* What the page is fitted to. Words rather than two similar icons. */}
+        <div role="group" aria-label={t('Fit the preview to')} className="flex overflow-hidden rounded-md border border-border text-xs">
+          {([['page', 'Page', 'Fit to screen'], ['width', 'Width', 'Fit to width']] as const).map(([mode, label, title]) => <button key={mode} type="button" aria-pressed={fit === mode} title={t(title)} onClick={() => chooseFit(mode)}
+            className={cn('px-2.5 py-1.5 font-medium hover:bg-muted focus-visible:outline-2 focus-visible:outline-primary', fit === mode && 'bg-muted text-primary')}>{t(label)}</button>)}
+        </div>
+        <button type="button" className="grid h-10 w-10 place-items-center rounded-md hover:bg-muted focus-visible:outline-2 focus-visible:outline-primary" title={t('Zoom in')} aria-label={t('Zoom in')} onClick={() => setZoom(value => Math.min(MAX_ZOOM, value + 0.1))}><ZoomIn size={15} /></button>
       </div>
       </div>
     </header>
