@@ -33,12 +33,13 @@ export function EditorModes({ activeView, onActiveView, previewOnly, onPreview, 
   </div>;
 }
 
-export function ResumeCheckPanel({ resume, onLocate, onAddSection }: { resume: Resume; onLocate: (id: string, field?: string) => void; onAddSection: (type: SectionType) => void }) {
+export function ResumeCheckPanel({ resume, onLocate, onAddSection, scopeNote }: { scopeNote?: string; resume: Resume; onLocate: (id: string, field?: string) => void; onAddSection: (type: SectionType) => void }) {
   const { lang, t } = useTheme();
   const result = useMemo(() => runChecks(resume, t), [resume, t]);
   return <section className="flex h-full min-w-0 flex-col gap-4 overflow-y-auto p-4" aria-label={t('Resume check')}>
     <div><h2 className="text-base font-semibold">{workspaceText(lang, 'checkTitle')}</h2><p className="mt-1 text-sm leading-6 text-muted-foreground">{workspaceText(lang, 'checkHelp')}</p></div>
     <p className="rounded-md border border-border bg-muted/30 p-3 text-xs leading-5 text-muted-foreground">{workspaceText(lang, 'caveat')}</p>
+    {scopeNote && <p className="rounded-md border border-sky-300 bg-sky-50/70 p-3 text-xs leading-5">{scopeNote}</p>}
     {result.results.length === 0 && <p className="flex items-center gap-2 rounded-lg border border-emerald-200 p-4 text-sm"><CheckCircle2 size={18} />{t('Great—no issues found!')}</p>}
     {result.results.map((finding, index) => <article key={`${finding.targetId}-${index}`} className="editor-finding">
       <div className="flex items-center gap-2 text-xs"><span className={cn('rounded px-2 py-1 font-medium', finding.type === 'error' ? 'bg-destructive/10 text-destructive' : 'bg-muted text-muted-foreground')}>{t(finding.type === 'error' ? 'Error' : finding.type === 'warning' ? 'Warning' : 'Suggestion')}</span><span className="text-muted-foreground">{finding.category}</span></div>
