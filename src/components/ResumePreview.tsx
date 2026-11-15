@@ -1,5 +1,6 @@
 import { SECTION_TEMPLATES, TEMPLATE_ACCENTS, TEMPLATE_VARIANTS, resolveResumeAvatar } from '../data.ts';
 import { getPaperSize } from '../lib/paper.ts';
+import { SIDE_BAND_HEADER_VARIANTS } from '../lib/template-layout.ts';
 import { getSummaryBody } from '../lib/resume-content.ts';
 import { useTheme } from '../lib/theme.tsx';
 import { cn } from '../lib/utils.ts';
@@ -139,9 +140,6 @@ function ResumeBackground() {
   );
 }
 
-// Templates that place the header in a narrow side band.
-const STACKED_CONTACT = new Set(['leftbar', 'rightbar']);
-
 function ResumeHeader({ profile, template, profileHeading }: {profile:ResumeProfile;template:string;profileHeading?:'h1'|'h2'|'p'}) {
   const NameTag = profileHeading || 'h1';
   const { t } = useTheme();
@@ -192,7 +190,7 @@ function ResumeHeader({ profile, template, profileHeading }: {profile:ResumeProf
       <div>
         <NameTag className="resume-name">{profile.name || t('Name')}</NameTag>
         {/* In a narrow side band the details go one per line: a single "a | b | c" sentence wraps with a bar at the start of lines. */}
-        {STACKED_CONTACT.has(template) ? profileInfo.map(item => <p key={item} className="contact-line">{item}</p>) : <p>{profileInfo.join(' | ')}</p>}
+        {SIDE_BAND_HEADER_VARIANTS.has(template) ? profileInfo.map(item => <p key={item} className="contact-line">{item}</p>) : <p>{profileInfo.join(' | ')}</p>}
       </div>
       <div className="classic-photo">{avatar}</div>
     </header>
