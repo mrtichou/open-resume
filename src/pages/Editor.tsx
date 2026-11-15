@@ -56,6 +56,7 @@ import { languageName } from '../components/LanguageBar.tsx';
 import { PreviewViewSelectors } from '../components/PreviewViewSelectors.tsx';
 import { TranslationTab } from '../components/TranslationTab.tsx';
 import { Dialog,DialogContent,DialogDescription,DialogFooter,DialogHeader,DialogTitle } from '../components/ui/dialog.tsx';
+import { usePdfAnalysis } from '../lib/use-pdf-analysis.ts';
 import { estimateAts } from '../lib/ats-estimate.ts';
 import { exportBaseName } from '../lib/export-names.ts';
 import { exportWarnings } from '../lib/export-warnings.ts';
@@ -377,19 +378,21 @@ export default function Editor({ resumeId }: {resumeId:string}) {
   const renderedResume = resolved?.resume ?? null;
   // Fixed labels ("Present", "Phone"...) follow the content language once one is declared; older resumes keep following the interface language.
   const contentLang = resume?.variants ? (localeId ?? sourceLocale) : lang;
-  // How readable the resume is for automatic scanners, as previewed: the preset and language shown are the ones judged.
-  const atsEstimate = useMemo(() => renderedResume ? estimateAts({
-    resume: renderedResume,
-    language: contentLang,
-    layoutVariant: TEMPLATE_VARIANTS[settings.template] ?? 'classic',
-    missingTranslations: localeId ? resolved?.missing.length ?? 0 : null,
-  }) : null, [renderedResume, contentLang, settings.template, localeId, resolved]);
   const translationRows = useMemo(() => resume && localeId ? buildTranslationRows(resume, localeId) : [], [resume, localeId]);
   const [pendingExport, setPendingExport] = useState<{ type: string; count: number; noFont: boolean } | null>(null);
   const pdfKey = usePdfDocumentKey(renderedResume, settings, lang);
   // The PDF's properties: the title viewers show, the author, and the language of the text.
   const pdfMetadata = renderedResume ? { title: renderedResume.title || renderedResume.profile.name, author: renderedResume.profile.name, language: contentLang } : undefined;
   const pdfPreview = usePdfPreview(paperRef, pdfKey, pdfMetadata);
+  const pdfAnalysis = usePdfAnalysis(pdfPreview.snapshot, { email: renderedResume?.profile.email ?? '', phone: renderedResume?.profile.phone ?? '' });
+  // How readable the resume is for automatic scanners, as previewed: the preset and language shown are the ones judged.
+  const atsEstimate = useMemo(() => renderedResume ? estimateAts({
+    resume: renderedResume,
+    language: contentLang,
+    layoutVariant: TEMPLATE_VARIANTS[settings.template] ?? 'classic',
+    missingTranslations: localeId ? resolved?.missing.length ?? 0 : null,
+    pdf: pdfAnalysis,
+  }) : null, [renderedResume, contentLang, settings.template, localeId, resolved, pdfAnalysis]);
   // Reminds what an export or a share link will contain, since the choice is made elsewhere.
   const exportSummary = outputSummary(languageName(localeId ?? sourceLocale), presetId && resume ? findPreset(resume, presetId)?.name : undefined, translatedLocales.length > 0);
   const latestDocumentKey = useRef(pdfKey);

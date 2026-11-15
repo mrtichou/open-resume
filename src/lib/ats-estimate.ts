@@ -1,5 +1,7 @@
 import { RESUME_SECTION_LABELS } from '../resume-locales.ts';
 import type { Resume } from '../types.ts';
+import { readableShare } from './ats-pdf-analysis.ts';
+import type { PdfAnalysis } from './ats-pdf-analysis.ts';
 import { isPdfRenderable } from './translation-languages.ts';
 import { SIDE_BAND_HEADER_VARIANTS } from './template-layout.ts';
 
@@ -11,7 +13,7 @@ import { SIDE_BAND_HEADER_VARIANTS } from './template-layout.ts';
  * criteria, so the percentage can be explained and improved. This module holds only the calculation; the
  * wording lives with the interface.
  */
-export type AtsCriterionId = 'name' | 'email' | 'phone' | 'headings' | 'dates' | 'layout' | 'alphabet' | 'translation';
+export type AtsCriterionId = 'name' | 'email' | 'phone' | 'headings' | 'dates' | 'layout' | 'alphabet' | 'translation' | 'extraction' | 'order' | 'characters' | 'found';
 export type AtsStatus = 'pass' | 'warn' | 'fail';
 
 export interface AtsCriterion {
@@ -38,9 +40,11 @@ export interface AtsInput {
   layoutVariant: string;
   /** Texts still in the source language while a translation is shown; null when the source language is shown. */
   missingTranslations: number | null;
+  /** Measurements of the text extracted from the PDF of the preview, once analysed. */
+  pdf?: PdfAnalysis | null;
 }
 
-const WEIGHTS: Record<AtsCriterionId, number> = { name: 7, email: 15, phone: 8, headings: 20, dates: 15, layout: 15, alphabet: 10, translation: 10 };
+const WEIGHTS: Record<AtsCriterionId, number> = { name: 7, email: 15, phone: 8, headings: 20, dates: 15, layout: 15, alphabet: 10, translation: 10, extraction: 15, order: 15, characters: 5, found: 10 };
 
 // ---- Section titles ---------------------------------------------------------
 
@@ -115,6 +119,22 @@ function criterionResults(input: AtsInput): Partial<Record<AtsCriterionId, Resul
     results.translation = input.missingTranslations === 0
       ? { fraction: 1, status: 'pass', details: { count: 0 } }
       : { fraction: 0.4, status: 'warn', details: { count: input.missingTranslations } };
+  }
+
+  if (input.pdf) {
+    const { extractable, orderShare, strayShare } = readableShare(input.pdf);
+    results.extraction = extractable ? { fraction: 1, status: 'pass', details: {} } : { fraction: 0, status: 'fail', details: {} };
+    // Without text there is nothing to order or compare: those criteria would only repeat the failure.
+    if (extractable) {
+      results.order = { fraction: orderShare, status: statusFor(orderShare), details: { count: input.pdf.upwardJumps, total: input.pdf.items } };
+      const cleanShare = strayShare === 0 ? 1 : strayShare < 0.01 ? 0.5 : 0;
+      results.characters = { fraction: cleanShare, status: statusFor(cleanShare), details: { count: input.pdf.strayChars } };
+      const wanted = [email, digits(phone) >= 7 ? phone : ''].filter(Boolean);
+      if (wanted.length > 0) {
+        const found = (email ? Number(input.pdf.emailFound) : 0) + (digits(phone) >= 7 ? Number(input.pdf.phoneFound) : 0);
+        results.found = shareResult(found, wanted.length);
+      }
+    }
   }
   return results;
 }

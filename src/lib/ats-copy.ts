@@ -42,6 +42,18 @@ export function atsText(criterion: AtsCriterion, t: Translator): AtsText {
         detail: ok ? t('The PDF fonts can draw this language.') : t('The PDF fonts cannot draw this alphabet: send the Word export instead.'),
         fix: ok ? undefined : { label: t('Open exports'), view: 'share' },
       };
+    case 'extraction':
+      return { title: t('Text in the PDF'), detail: ok ? t('A scanner can extract the text of the PDF.') : t('A scanner finds almost no text in the PDF: send the Word export or check the template.'), fix: ok ? undefined : { label: t('Open exports'), view: 'share' } };
+    case 'order':
+      return {
+        title: t('Reading order'),
+        detail: ok ? t('The text comes in a natural reading order.') : t('The text jumps back up the page {count} times when read in file order, as happens when columns or bands are mixed. A one-column template is safer.', { count: details.count ?? 0 }),
+        fix: ok ? undefined : { label: t('Change template'), view: 'template' },
+      };
+    case 'characters':
+      return { title: t('Clean characters'), detail: ok ? t('No stray characters in the extracted text.') : t('{count} characters (ligatures, hidden or unreadable symbols) may come out garbled in a scanner.', { count: details.count ?? 0 }), fix: ok ? undefined : { label: t('Change template'), view: 'template' } };
+    case 'found':
+      return { title: t('Contact details in the PDF'), detail: ok ? t('Your email and phone are found in the extracted text.') : t('Your email or phone cannot be found in the extracted text of the PDF.'), fix: ok ? undefined : { label: t('Open exports'), view: 'share' } };
     case 'translation':
       return {
         title: t('Translation'),
