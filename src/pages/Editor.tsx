@@ -56,6 +56,7 @@ import { languageName } from '../components/LanguageBar.tsx';
 import { PreviewViewSelectors } from '../components/PreviewViewSelectors.tsx';
 import { TranslationTab } from '../components/TranslationTab.tsx';
 import { Dialog,DialogContent,DialogDescription,DialogFooter,DialogHeader,DialogTitle } from '../components/ui/dialog.tsx';
+import { exportBaseName } from '../lib/export-names.ts';
 import { exportWarnings } from '../lib/export-warnings.ts';
 import { effectiveLocale,outputSummary } from '../lib/view-rules.ts';
 import { useActiveLocale } from '../lib/use-active-locale.ts';
@@ -645,7 +646,8 @@ export default function Editor({ resumeId }: {resumeId:string}) {
     setExportFeedback(null);
     setIsExporting(type); setExportOpen(false);
     const presetName = presetId ? findPreset(resume, presetId)?.name : undefined;
-    const base = [resume.title || resume.profile.name || 'resume', presetName?.replace(/[\\/:*?"<>|]+/g, '-'), localeId].filter(Boolean).join(' - ');
+    // A backup holds the whole resume, so it carries neither the language nor the preset that happened to be shown.
+    const base = exportBaseName(type === 'json' ? 'backup' : 'document', { title: resume.title || resume.profile.name, presetName, locale: localeId });
     try {
       if (type === 'pdf' || type === 'png') {
         const snapshot = await pdfPreview.getSnapshot();
