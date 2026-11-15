@@ -1,4 +1,5 @@
 import { Eye, Loader2, Maximize2, MoveHorizontal, ZoomIn, ZoomOut } from 'lucide-react';
+import type { ReactNode } from 'react';
 import { useEffect, useRef, useState } from 'react';
 import type { PDFDocumentProxy, PDFWorker, RenderTask } from 'pdfjs-dist';
 import type { PdfSnapshot } from '../lib/pdf-snapshot.ts';
@@ -9,7 +10,7 @@ import { useTheme } from '../lib/theme.tsx';
 import { cn } from '../lib/utils.ts';
 import { Button } from './ui/button.tsx';
 
-export default function PdfResumePreview({ snapshot, pending, error, onRetry, activeItemId, onLocate, className }: { snapshot: PdfSnapshot | null; pending: boolean; error: boolean; onRetry: () => void; activeItemId: string | null; onLocate: (id: string) => void; className?: string }) {
+export default function PdfResumePreview({ snapshot, pending, error, onRetry, activeItemId, onLocate, className, headerExtra }: { headerExtra?: ReactNode; snapshot: PdfSnapshot | null; pending: boolean; error: boolean; onRetry: () => void; activeItemId: string | null; onLocate: (id: string) => void; className?: string }) {
   const { lang, t } = useTheme();
   const [rendered, setRendered] = useState<{ pdf: PDFDocumentProxy; snapshot: PdfSnapshot; revision: number; release: () => void } | null>(null);
   const sequence = useRef(0);
@@ -77,8 +78,10 @@ export default function PdfResumePreview({ snapshot, pending, error, onRetry, ac
   const painting = !rendered || painted.revision !== rendered.revision || painted.count < count;
   const failed = error || renderError;
   return <section className={cn('pdf-preview-surface min-h-0 min-w-0 flex-col bg-muted/55', className)} aria-label={workspaceText(lang, 'pdfPreview')} aria-busy={pending}>
-    <header className="flex min-h-12 shrink-0 items-center justify-between gap-2 border-b border-border bg-card px-3">
+    <header className="flex min-h-12 shrink-0 flex-wrap items-center justify-between gap-x-2 gap-y-1 border-b border-border bg-card px-3">
       <span className="flex min-w-0 items-center gap-2 text-xs text-muted-foreground"><Eye size={14} className="shrink-0 text-primary" /><span>{workspaceText(lang, 'pdfPreview')}{snapshot ? ` · ${snapshot.paper}` : ''}</span>{count > 0 && <span className="whitespace-nowrap">· {workspaceText(lang, 'pages', { count })}</span>}</span>
+      <div className="flex flex-wrap items-center justify-end gap-x-3 gap-y-1">
+        {headerExtra}
       <div className="flex shrink-0 items-center gap-1">
         {shown && <span className="mr-1 text-xs tabular-nums text-muted-foreground" aria-label={t('Zoom')}>{Math.round(scale * 100)}%</span>}
         {[
@@ -87,6 +90,7 @@ export default function PdfResumePreview({ snapshot, pending, error, onRetry, ac
           { icon: MoveHorizontal, label: 'Fit to width', pressed: fit === 'width' && zoom === 1, action: () => chooseFit('width') },
           { icon: ZoomIn, label: 'Zoom in', pressed: undefined, action: () => setZoom(value => Math.min(MAX_ZOOM, value + 0.1)) },
         ].map(control => <button key={control.label} type="button" className={cn('grid h-10 w-10 place-items-center rounded-md hover:bg-muted focus-visible:outline-2 focus-visible:outline-primary', control.pressed && 'bg-muted text-primary')} title={t(control.label)} aria-label={t(control.label)} aria-pressed={control.pressed} onClick={control.action}><control.icon size={15} /></button>)}
+      </div>
       </div>
     </header>
     <div className="border-b border-border bg-card/70 px-4 py-2 text-xs leading-5 text-muted-foreground" role={failed ? 'alert' : 'status'}>
