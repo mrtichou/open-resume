@@ -1,4 +1,4 @@
-import { Eye, Loader2, ZoomIn, ZoomOut } from 'lucide-react';
+import { CheckCircle2, Eye, Info, Loader2, ZoomIn, ZoomOut } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useEffect, useRef, useState } from 'react';
 import type { PDFDocumentProxy, PDFWorker, RenderTask } from 'pdfjs-dist';
@@ -77,27 +77,38 @@ export default function PdfResumePreview({ snapshot, pending, error, onRetry, ac
   const count = pdf?.numPages || Math.max(0, (snapshot?.cuts.length || 1) - 1);
   const painting = !rendered || painted.revision !== rendered.revision || painted.count < count;
   const failed = error || renderError;
+  const busy = pending || !pdf || shown !== snapshot || painting;
   return <section className={cn('pdf-preview-surface min-h-0 min-w-0 flex-col bg-muted/55', className)} aria-label={workspaceText(lang, 'pdfPreview')} aria-busy={pending}>
-    <header className="flex min-h-12 shrink-0 flex-wrap items-center justify-between gap-x-2 gap-y-1 border-b border-border bg-card px-3">
-      <span className="flex min-w-0 items-center gap-2 text-xs text-muted-foreground"><Eye size={14} className="shrink-0 text-primary" /><span>{workspaceText(lang, 'pdfPreview')}{snapshot ? ` · ${snapshot.paper}` : ''}</span>{count > 0 && <span className="whitespace-nowrap">· {workspaceText(lang, 'pages', { count })}</span>}</span>
+    <header className="flex min-h-10 shrink-0 flex-wrap items-center justify-between gap-x-2 gap-y-1 border-b border-border bg-card px-3 py-1">
+      <span className="flex min-w-0 items-center gap-2 text-xs text-muted-foreground">
+        <Eye size={14} className="shrink-0 text-primary" aria-hidden="true" />
+        <span className="sr-only">{workspaceText(lang, 'pdfPreview')}</span>
+        <span className="whitespace-nowrap">{[snapshot?.paper, count > 0 ? workspaceText(lang, 'pages', { count }) : ''].filter(Boolean).join(' · ')}</span>
+        {count > 1 && !pending && <span role="img" title={workspaceText(lang, 'multiple', { count })} aria-label={workspaceText(lang, 'multiple', { count })}><Info size={13} className="text-amber-600" /></span>}
+        {/* The preview's state in one small mark: a tick when it matches the PDF, a spinner while it updates. */}
+        {!failed && <span role="status" className="inline-flex items-center gap-1" title={workspaceText(lang, 'current')}>
+          {busy
+            ? <><Loader2 size={13} className="animate-spin" aria-hidden="true" /><span>{workspaceText(lang, snapshot ? 'updating' : 'preparing')}</span></>
+            : <><CheckCircle2 size={13} className="text-emerald-600" aria-hidden="true" /><span className="sr-only">{workspaceText(lang, 'current')}</span></>}
+        </span>}
+      </span>
       <div className="flex flex-wrap items-center justify-end gap-x-3 gap-y-1">
         {headerExtra}
       <div className="flex shrink-0 items-center gap-1">
         {shown && <span className="mr-1 text-xs tabular-nums text-muted-foreground" aria-label={t('Zoom')}>{Math.round(scale * 100)}%</span>}
-        <button type="button" className="grid h-10 w-10 place-items-center rounded-md hover:bg-muted focus-visible:outline-2 focus-visible:outline-primary" title={t('Zoom out')} aria-label={t('Zoom out')} onClick={() => setZoom(value => Math.max(MIN_ZOOM, value - 0.1))}><ZoomOut size={15} /></button>
+        <button type="button" className="grid h-8 w-8 place-items-center rounded-md hover:bg-muted focus-visible:outline-2 focus-visible:outline-primary" title={t('Zoom out')} aria-label={t('Zoom out')} onClick={() => setZoom(value => Math.max(MIN_ZOOM, value - 0.1))}><ZoomOut size={15} /></button>
         {/* What the page is fitted to. Words rather than two similar icons. */}
         <div role="group" aria-label={t('Fit the preview to')} className="flex overflow-hidden rounded-md border border-border text-xs">
           {([['page', 'Page', 'Fit to screen'], ['width', 'Width', 'Fit to width']] as const).map(([mode, label, title]) => <button key={mode} type="button" aria-pressed={fit === mode} title={t(title)} onClick={() => chooseFit(mode)}
-            className={cn('px-2.5 py-1.5 font-medium hover:bg-muted focus-visible:outline-2 focus-visible:outline-primary', fit === mode && 'bg-muted text-primary')}>{t(label)}</button>)}
+            className={cn('px-2 py-1 font-medium hover:bg-muted focus-visible:outline-2 focus-visible:outline-primary', fit === mode && 'bg-muted text-primary')}>{t(label)}</button>)}
         </div>
-        <button type="button" className="grid h-10 w-10 place-items-center rounded-md hover:bg-muted focus-visible:outline-2 focus-visible:outline-primary" title={t('Zoom in')} aria-label={t('Zoom in')} onClick={() => setZoom(value => Math.min(MAX_ZOOM, value + 0.1))}><ZoomIn size={15} /></button>
+        <button type="button" className="grid h-8 w-8 place-items-center rounded-md hover:bg-muted focus-visible:outline-2 focus-visible:outline-primary" title={t('Zoom in')} aria-label={t('Zoom in')} onClick={() => setZoom(value => Math.min(MAX_ZOOM, value + 0.1))}><ZoomIn size={15} /></button>
       </div>
       </div>
     </header>
-    <div className="border-b border-border bg-card/70 px-4 py-2 text-xs leading-5 text-muted-foreground" role={failed ? 'alert' : 'status'}>
-      {failed ? <span>{workspaceText(lang, 'previewError')} <Button variant="outline" size="sm" className="ml-2 text-xs" onClick={() => { setLoadAttempt(value => value + 1); onRetry(); }}>{workspaceText(lang, 'retry')}</Button></span> : pending || !pdf || shown !== snapshot || painting ? <span className="inline-flex items-center gap-2"><Loader2 size={13} className="animate-spin" />{workspaceText(lang, snapshot ? 'updating' : 'preparing')}</span> : workspaceText(lang, 'current')}
-    </div>
-    {count > 1 && !pending && <p className="border-b border-border bg-card/70 px-4 py-2 text-xs leading-5 text-muted-foreground">{workspaceText(lang, 'multiple', { count })}</p>}
+    {failed && <div className="border-b border-border bg-card/70 px-4 py-2 text-xs leading-5 text-muted-foreground" role="alert">
+      <span>{workspaceText(lang, 'previewError')} <Button variant="outline" size="sm" className="ml-2 text-xs" onClick={() => { setLoadAttempt(value => value + 1); onRetry(); }}>{workspaceText(lang, 'retry')}</Button></span>
+    </div>}
     {/* The scrollbar's room is always reserved: otherwise fitting the width could flicker when the pages become taller than the panel. */}
     <div ref={stage} className="min-h-0 flex-1 overflow-auto p-5 [scrollbar-gutter:stable]">
       {shown && pdf && rendered && <div className="resume-pages mx-auto" data-pdf-fingerprint={pdf.fingerprints[0]}>{Array.from({ length: pdf.numPages }, (_, index) => <PdfPage key={`${rendered.revision}-${index}`} pdf={pdf} index={index} snapshot={shown} scale={scale} activeItemId={activeItemId} onLocate={onLocate} onError={() => setRenderError(true)} onReady={() => setPainted(current => current.revision === rendered.revision ? { revision: current.revision, count: current.count + 1 } : current)} />)}</div>}
