@@ -4,18 +4,34 @@
 
 <h1 align="center">Open Resume</h1>
 
-<p align="center">An open-source resume builder. All templates. Free exports. Your own data.</p>
+<p align="center">One resume, tailored to every job and every language. Self-hosted. All templates. Free exports. Your own data.</p>
+
+<p align="center"><em>A fork of <a href="https://github.com/AniChikage/open-resume">Open Resume</a> by AniChikage, adding presets, item versions and translations.</em></p>
 
 <p align="center">
   English · <a href="README.zh-CN.md">简体中文</a><br>
-  <a href="#getting-started">Self-host</a> · <a href="#features">Features</a> · <a href="#demo">Demo</a> · <a href="https://justcv.org">Hosted version</a> · <a href="LICENSE">MIT License</a>
+  <a href="#getting-started">Self-host</a> · <a href="#who-is-this-fork-for">Who it is for</a> · <a href="#features">Features</a> · <a href="#demo">Demo</a> · <a href="#origin-and-credits">Origin</a> · <a href="LICENSE">MIT License</a>
 </p>
 
-**Don't pay for features you rarely use.** A resume is something you update when you need it. Open Resume is free and open source: use every template, create as many resumes as you like, and export without a paywall or watermark. Run it yourself and keep your data under your control.
-
-**Prefer to skip deployment?** Use the **[paid hosted version at justcv.org](https://justcv.org)** and support continued development. Choose the convenience of hosting when you need it; self-host the open-source project whenever you like.
+**You apply to more than one job, perhaps in more than one language, and you do not want a folder of near-identical resumes.** This fork keeps **one master resume** and lets you show a different selection of it for each target job and each language, then export it as PDF, Word or PNG. The rest stays what Open Resume already is: free and open source, every template included, no watermark, and your data on your own machine.
 
 ![Open Resume — English editor with live resume preview](docs/images/editor.png)
+
+## Who is this fork for?
+
+**For people who maintain one resume and send many versions of it.** Typical situations:
+
+- You apply to roles that stress different strengths, and you want to hide or reword entries for each job instead of copying and editing the whole resume every time.
+- You need the same resume in two or more languages, with each translation kept beside the original text and a warning when one falls behind.
+- You want your resume to get through automatic scanning: text PDFs in reading order, and a Word export built from real headings and lists.
+- You prefer to host your own tools (a laptop, a home server, a Raspberry Pi) and keep your data under your control. Machine translation only runs if you turn it on.
+
+**What this fork adds to Open Resume:** presets and item versions to tailor a resume per job, a Translation tab with optional DeepL or LibreTranslate support, a rich-text summary, the Orbit template, PDF and Word exports built to be read by scanning robots, and more information on each resume in your library. Details are in [Presets, versions and translations](#presets-versions-and-translations).
+
+**Probably not for you if:**
+
+- You want a hosted service, accounts, or a workspace shared by several people. An installation has one shared workspace. The original author also runs a paid hosted version at [justcv.org](https://justcv.org); it is a separate product and does not include the additions of this fork.
+- You keep a single resume in a single language. The original project is simpler and does that equally well.
 
 ## Features
 
@@ -54,14 +70,14 @@ Choose a template, edit your details, change the style, and export your resume.
 
 **[Download the 30-second demo (MP4)](https://github.com/AniChikage/open-resume/raw/refs/heads/main/docs/media/open-resume-demo.mp4)** · [Text walkthrough](docs/media/README.md)
 
-Screenshots and the walkthrough show the real app with fictional English sample data.
+Screenshots and the walkthrough show the real app with fictional English sample data. They come from the original project and show the editor before this fork's additions; the new panels are described in [Presets, versions and translations](#presets-versions-and-translations).
 
 ## Getting started
 
 ### Docker
 
 ```sh
-git clone https://github.com/AniChikage/open-resume.git
+git clone https://github.com/mrtichou/open-resume.git
 cd open-resume
 docker compose up -d --build
 ```
@@ -75,7 +91,7 @@ Data is stored in the `resumes` named volume and survives container replacement.
 Requires **Node.js 24 or later**.
 
 ```sh
-git clone https://github.com/AniChikage/open-resume.git
+git clone https://github.com/mrtichou/open-resume.git
 cd open-resume
 npm ci
 npm run build
@@ -188,6 +204,12 @@ npm run build        # Type checking and production frontend
 `npm run dev` hot-reloads the browser code only: after changing the server (`server/`, `src/translation.ts`, any `/api` route), stop it and start it again. The production image copies an explicit list of server files, so a new server file must be added to the `Dockerfile` (`npm test` checks this). Node.js 24 runs the server's `.ts` files directly; Vite builds the browser code. Shared types are in `src/types.ts`; external JSON validation is in `src/lib/validation.ts`. GitHub Actions and Docker builds run the tests and type checks. AI tests use a synthetic provider and do not consume paid credits.
 
 See the [verification record](docs/verification.md) and [Docker acceptance](docs/docker-acceptance.md) for tested behavior and current boundaries. Bug reports, documentation improvements, and focused pull requests are welcome in [Issues](https://github.com/AniChikage/open-resume/issues).
+
+## Origin and credits
+
+This project is a fork of [Open Resume by AniChikage](https://github.com/AniChikage/open-resume), released under the MIT License, which this fork keeps. The templates, the editor, the importers, the exports, the version history and the self-hosting setup come from that project. The additions listed in [Who is this fork for?](#who-is-this-fork-for) and documented in [Presets, versions and translations](#presets-versions-and-translations) are specific to this fork.
+
+The Chinese README ([README.zh-CN.md](README.zh-CN.md)) and the demo media are the original's and do not describe this fork's additions.
 
 ## License
 
