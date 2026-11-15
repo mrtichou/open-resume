@@ -1958,7 +1958,7 @@ html:is([lang="zh-CN"], [lang="zh-TW"]) .landing-shell {
 .editor-style-panel { padding: 24px; gap: 24px; }
 .editor-style-panel .editor-style-group { padding: 0; border: 0; border-radius: 0; box-shadow: none; }
 .editor-style-panel .editor-style-group + .editor-style-group { padding-top: 24px; border-top: 1px solid var(--border); }
-.editor-finding { padding: 20px 0; border-top: 1px solid var(--border); }
+.editor-finding { padding: 20px 0 20px 14px; border-top: 1px solid var(--border); }
 .editor-share-format { display: flex; align-items: center; gap: 14px; min-height: 84px; padding: 18px 0; border-bottom: 1px solid var(--border); text-align: left; }
 .editor-share-format:hover { color: var(--primary); }
 .pdf-preview-surface { background: #f5f6f8; }
