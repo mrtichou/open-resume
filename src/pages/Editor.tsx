@@ -754,7 +754,7 @@ export default function Editor({ resumeId }: {resumeId:string}) {
         </div>
         <div className="resume-pagination-measure" aria-hidden="true"><ContentLanguageProvider lang={contentLang}><ResumePreview resume={renderedResume ?? resume} settings={settings} refNode={paperRef} /></ContentLanguageProvider></div>
         <Suspense fallback={<div className={cn('min-h-0 items-center justify-center bg-muted/55', previewOnly ? 'flex' : 'hidden lg:flex')}><Loader2 className="animate-spin" /></div>}>
-          <PdfResumePreview headerExtra={<PreviewViewSelectors activeView={activeView} onActiveView={selectView} />} snapshot={pdfPreview.snapshot} pending={pdfPreview.pending} error={pdfPreview.error} onRetry={pdfPreview.retry} activeItemId={activeItemId} onLocate={locateFromPreview} className={previewOnly ? 'flex' : 'hidden lg:flex'} />
+          <PdfResumePreview headerExtra={<PreviewViewSelectors activeView={activeView} onActiveView={selectView} onManagePresets={() => { setActiveView('edit'); setPreviewOnly(false); setLocationRequest({ id: 'presets' }); }} />} snapshot={pdfPreview.snapshot} pending={pdfPreview.pending} error={pdfPreview.error} onRetry={pdfPreview.retry} activeItemId={activeItemId} onLocate={locateFromPreview} className={previewOnly ? 'flex' : 'hidden lg:flex'} />
         </Suspense>
       </main>
       <Dialog open={pendingExport !== null} onOpenChange={(open) => { if (!open) setPendingExport(null); }}>
