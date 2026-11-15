@@ -49,12 +49,17 @@ export function LanguageBar() {
   const noPdf = [variants.sourceLocale, ...translatedLocales].filter(code => !isPdfRenderable(code));
 
   return <section className="flex flex-col gap-2 rounded-lg border border-border bg-muted/30 p-3" aria-label={t('Languages')} data-editor-target="languages">
-    <div className="flex items-center gap-2">
-      <label htmlFor={sourceId} className="shrink-0 text-xs font-medium">{t('Resume language')}</label>
-      <select id={sourceId} className="min-w-0 flex-1 rounded border border-border bg-background px-2 py-1.5 text-xs" value={variants.sourceLocale} onChange={event => variants.setSourceLocale(event.target.value)}>
-        {sourceOptions.map(option => <option key={option.code} value={option.code}>{optionText(option)}</option>)}
-      </select>
-    </div>
+    {/* Rarely changed and easy to get wrong, so it stays folded away from the frequent actions below. */}
+    <details className="text-xs">
+      <summary className="cursor-pointer text-muted-foreground">{t('Resume language: {language}', { language: languageName(variants.sourceLocale) })}</summary>
+      <div className="mt-2 flex items-center gap-2">
+        <label htmlFor={sourceId} className="shrink-0 font-medium">{t('Resume language')}</label>
+        <select id={sourceId} className="min-w-0 flex-1 rounded border border-border bg-background px-2 py-1.5 text-xs" value={variants.sourceLocale} onChange={event => variants.setSourceLocale(event.target.value)}>
+          {sourceOptions.map(option => <option key={option.code} value={option.code}>{optionText(option)}</option>)}
+        </select>
+      </div>
+      <p className="mt-1 leading-5 text-muted-foreground">{t('The language your content is written in. Change it only if it was set wrongly.')}</p>
+    </details>
     {translatedLocales.length > 0 && <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label={t('Language shown')}>
       {[null, ...translatedLocales].map(locale => {
         const code = locale ?? variants.sourceLocale;
