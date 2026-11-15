@@ -29,7 +29,7 @@ import { Skeleton } from '../components/ui/skeleton.tsx';
 import { Field as FormField, FieldGroup, FieldLabel } from '../components/ui/field.tsx';
 import { visualText } from '../lib/visual-copy.ts';
 import {
-createSectionItem,DEFAULT_SETTINGS,FONT_OPTIONS,getSectionCopy,inferSystemResumeTitleKind,
+createSectionItem,TEMPLATE_VARIANTS,DEFAULT_SETTINGS,FONT_OPTIONS,getSectionCopy,inferSystemResumeTitleKind,
 localizeResumeSections,localizeResumeTitle,
 resolveResumeAvatar,
 RESUME_TEMPLATES,SECTION_TEMPLATES
@@ -56,6 +56,7 @@ import { languageName } from '../components/LanguageBar.tsx';
 import { PreviewViewSelectors } from '../components/PreviewViewSelectors.tsx';
 import { TranslationTab } from '../components/TranslationTab.tsx';
 import { Dialog,DialogContent,DialogDescription,DialogFooter,DialogHeader,DialogTitle } from '../components/ui/dialog.tsx';
+import { estimateAts } from '../lib/ats-estimate.ts';
 import { exportBaseName } from '../lib/export-names.ts';
 import { exportWarnings } from '../lib/export-warnings.ts';
 import { effectiveLocale,outputSummary } from '../lib/view-rules.ts';
@@ -376,6 +377,13 @@ export default function Editor({ resumeId }: {resumeId:string}) {
   const renderedResume = resolved?.resume ?? null;
   // Fixed labels ("Present", "Phone"...) follow the content language once one is declared; older resumes keep following the interface language.
   const contentLang = resume?.variants ? (localeId ?? sourceLocale) : lang;
+  // How readable the resume is for automatic scanners, as previewed: the preset and language shown are the ones judged.
+  const atsEstimate = useMemo(() => renderedResume ? estimateAts({
+    resume: renderedResume,
+    language: contentLang,
+    layoutVariant: TEMPLATE_VARIANTS[settings.template] ?? 'classic',
+    missingTranslations: localeId ? resolved?.missing.length ?? 0 : null,
+  }) : null, [renderedResume, contentLang, settings.template, localeId, resolved]);
   const translationRows = useMemo(() => resume && localeId ? buildTranslationRows(resume, localeId) : [], [resume, localeId]);
   const [pendingExport, setPendingExport] = useState<{ type: string; count: number; noFont: boolean } | null>(null);
   const pdfKey = usePdfDocumentKey(renderedResume, settings, lang);
@@ -753,7 +761,7 @@ export default function Editor({ resumeId }: {resumeId:string}) {
         <div id="editor-workspace-panel" role="tabpanel" aria-labelledby={`editor-tab-${activeView}`} className={cn('editor-workspace light-panel min-h-0 min-w-0 border-r border-border bg-card', previewOnly ? 'hidden lg:block' : 'block')}>
           {activeView === 'translate' ? <TranslationTab FieldInput={VersionFieldInput} />
             : activeView === 'template' ? <TemplateStylePanel resume={resume} settings={settings} onSettings={setSettings} />
-            : activeView === 'check' ? <ResumeCheckPanel scopeNote={translatedLocales.length > 0 ? t('This checks the {language} source text of your resume, not its translations.', { language: languageName(sourceLocale) }) : undefined} resume={resume} onLocate={locateFromPreview} onAddSection={type => { const section = resume.sections.find(value => value.type === type); if (section) { updateSection(section.id, { visible: true }); locateFromPreview(section.items[0]?.id || addItem(section)); } else locateFromPreview(addSection(type)); }} />
+            : activeView === 'check' ? <ResumeCheckPanel ats={atsEstimate} onFix={fix => { if (fix.view) selectView(fix.view); else if (fix.locate) locateFromPreview(fix.locate); }} scopeNote={translatedLocales.length > 0 ? t('This checks the {language} source text of your resume, not its translations.', { language: languageName(sourceLocale) }) : undefined} resume={resume} onLocate={locateFromPreview} onAddSection={type => { const section = resume.sections.find(value => value.type === type); if (section) { updateSection(section.id, { visible: true }); locateFromPreview(section.items[0]?.id || addItem(section)); } else locateFromPreview(addSection(type)); }} />
             : activeView === 'share' ? <ResumeSharePanel summary={exportSummary} key={pdfKey} url={shareUrl} onShare={handleShare} onExport={handleExport} isExporting={isExporting} />
             : <EditorPanel resume={resume} activeItemId={activeItemId} onProfile={updateProfile} onAvatar={handleAvatar} onSection={updateSection} onItem={updateItem} onAddItem={section => locateFromPreview(addItem(section))} onAddSection={type => locateFromPreview(addSection(type))} onDeleteSection={deleteSection} onDeleteItem={deleteItem} onMoveSection={moveSection} onActiveItem={setActiveItemId} onCheck={handleCheck} />}
         </div>

@@ -113,3 +113,25 @@ test('the level follows the percentage', () => {
   const fair = estimateAts(input({ layoutVariant: 'leftbar', resume: (() => { const doc = resume(); doc.profile.phone = ''; doc.profile.email = ''; return doc; })() }));
   assert.equal(fair.level, fair.percent >= 80 ? 'good' : fair.percent >= 50 ? 'fair' : 'poor');
 });
+
+// ---- Wording -----------------------------------------------------------------
+
+test('every criterion has wording in every state, and a way to improve it unless it already passes', async () => {
+  const { atsText } = await import('../src/lib/ats-copy.ts');
+  const t = (message: string, values: Record<string, string | number> = {}) => message.replace(/\{(\w+)\}/g, (_, key) => String(values[key] ?? `{${key}}`));
+  const states = [
+    { resume: resume(), language: 'en', layoutVariant: 'ats', missingTranslations: 0 },
+    (() => { const doc = resume(); doc.profile = { ...doc.profile, name: '', email: 'bad', phone: '' }; doc.sections[1].label = 'Odd'; doc.sections[1].items.forEach(item => { delete item.startDate; delete item.period; delete item.current; }); return { resume: doc, language: 'ar', layoutVariant: 'leftbar', missingTranslations: 3 }; })(),
+  ];
+  const seen = new Set<string>();
+  for (const state of states) {
+    for (const criterion of estimateAts(state).criteria) {
+      const text = atsText(criterion, t);
+      seen.add(`${criterion.id}:${criterion.status}`);
+      assert.ok(text.title && text.detail, `${criterion.id}/${criterion.status} has wording`);
+      assert.ok(!/\{\w+\}/.test(text.detail), `${criterion.id}/${criterion.status} leaves no placeholder: ${text.detail}`);
+      assert.equal(Boolean(text.fix), criterion.status !== 'pass', `${criterion.id}/${criterion.status}: only unmet criteria offer a fix`);
+    }
+  }
+  assert.ok(seen.size >= 12, `the test covered ${seen.size} states`);
+});
