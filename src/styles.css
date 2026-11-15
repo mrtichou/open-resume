@@ -1230,6 +1230,11 @@ html:is([lang="zh-CN"], [lang="zh-TW"]) .landing-shell {
   font-family: var(--resume-font);
   font-size: calc(var(--resume-size, 12px) * 20 / 13);
 }
+.template-leftbar .classic-header .contact-line,
+.template-rightbar .classic-header .contact-line {
+  margin: 0 0 1.2mm;
+  overflow-wrap: anywhere;
+}
 .template-leftbar .classic-photo {
   order: -1;
   width: 27mm;

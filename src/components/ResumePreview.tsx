@@ -139,6 +139,9 @@ function ResumeBackground() {
   );
 }
 
+// Templates that place the header in a narrow side band.
+const STACKED_CONTACT = new Set(['leftbar', 'rightbar']);
+
 function ResumeHeader({ profile, template, profileHeading }: {profile:ResumeProfile;template:string;profileHeading?:'h1'|'h2'|'p'}) {
   const NameTag = profileHeading || 'h1';
   const { t } = useTheme();
@@ -188,7 +191,8 @@ function ResumeHeader({ profile, template, profileHeading }: {profile:ResumeProf
     <header data-preview-target="profile" className="resume-header classic-header">
       <div>
         <NameTag className="resume-name">{profile.name || t('Name')}</NameTag>
-        <p>{profileInfo.join(' | ')}</p>
+        {/* In a narrow side band the details go one per line: a single "a | b | c" sentence wraps with a bar at the start of lines. */}
+        {STACKED_CONTACT.has(template) ? profileInfo.map(item => <p key={item} className="contact-line">{item}</p>) : <p>{profileInfo.join(' | ')}</p>}
       </div>
       <div className="classic-photo">{avatar}</div>
     </header>
