@@ -56,6 +56,7 @@ import { languageName } from '../components/LanguageBar.tsx';
 import { PreviewViewSelectors } from '../components/PreviewViewSelectors.tsx';
 import { TranslationTab } from '../components/TranslationTab.tsx';
 import { Dialog,DialogContent,DialogDescription,DialogFooter,DialogHeader,DialogTitle } from '../components/ui/dialog.tsx';
+import { useDocxAnalysis } from '../lib/use-docx-analysis.ts';
 import { usePdfAnalysis } from '../lib/use-pdf-analysis.ts';
 import { estimateAts } from '../lib/ats-estimate.ts';
 import { exportBaseName } from '../lib/export-names.ts';
@@ -386,13 +387,16 @@ export default function Editor({ resumeId }: {resumeId:string}) {
   const pdfPreview = usePdfPreview(paperRef, pdfKey, pdfMetadata);
   const pdfAnalysis = usePdfAnalysis(pdfPreview.snapshot, { email: renderedResume?.profile.email ?? '', phone: renderedResume?.profile.phone ?? '' });
   // How readable the resume is for automatic scanners, as previewed: the preset and language shown are the ones judged.
+  const wordDocument = useMemo(() => renderedResume ? { resume: renderedResume, settings } : null, [renderedResume, settings]);
+  const docxAnalysis = useDocxAnalysis(wordDocument, contentLang, activeView === 'check');
   const atsEstimate = useMemo(() => renderedResume ? estimateAts({
     resume: renderedResume,
     language: contentLang,
     layoutVariant: TEMPLATE_VARIANTS[settings.template] ?? 'classic',
     missingTranslations: localeId ? resolved?.missing.length ?? 0 : null,
     pdf: pdfAnalysis,
-  }) : null, [renderedResume, contentLang, settings.template, localeId, resolved, pdfAnalysis]);
+    docx: docxAnalysis,
+  }) : null, [renderedResume, contentLang, settings.template, localeId, resolved, pdfAnalysis, docxAnalysis]);
   // Reminds what an export or a share link will contain, since the choice is made elsewhere.
   const exportSummary = outputSummary(languageName(localeId ?? sourceLocale), presetId && resume ? findPreset(resume, presetId)?.name : undefined, translatedLocales.length > 0);
   const latestDocumentKey = useRef(pdfKey);

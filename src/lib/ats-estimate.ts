@@ -2,6 +2,7 @@ import { RESUME_SECTION_LABELS } from '../resume-locales.ts';
 import type { Resume } from '../types.ts';
 import { readableShare } from './ats-pdf-analysis.ts';
 import type { PdfAnalysis } from './ats-pdf-analysis.ts';
+import type { DocxAnalysis } from './ats-docx-analysis.ts';
 import { isPdfRenderable } from './translation-languages.ts';
 import { SIDE_BAND_HEADER_VARIANTS } from './template-layout.ts';
 
@@ -13,7 +14,7 @@ import { SIDE_BAND_HEADER_VARIANTS } from './template-layout.ts';
  * criteria, so the percentage can be explained and improved. This module holds only the calculation; the
  * wording lives with the interface.
  */
-export type AtsCriterionId = 'name' | 'email' | 'phone' | 'headings' | 'dates' | 'layout' | 'alphabet' | 'translation' | 'extraction' | 'order' | 'characters' | 'found';
+export type AtsCriterionId = 'name' | 'email' | 'phone' | 'headings' | 'dates' | 'layout' | 'alphabet' | 'translation' | 'extraction' | 'order' | 'characters' | 'found' | 'wordHeadings' | 'wordStructure' | 'wordLanguage';
 export type AtsStatus = 'pass' | 'warn' | 'fail';
 
 export interface AtsCriterion {
@@ -42,9 +43,11 @@ export interface AtsInput {
   missingTranslations: number | null;
   /** Measurements of the text extracted from the PDF of the preview, once analysed. */
   pdf?: PdfAnalysis | null;
+  /** Structure of the Word export, once analysed. */
+  docx?: DocxAnalysis | null;
 }
 
-const WEIGHTS: Record<AtsCriterionId, number> = { name: 7, email: 15, phone: 8, headings: 20, dates: 15, layout: 15, alphabet: 10, translation: 10, extraction: 15, order: 15, characters: 5, found: 10 };
+const WEIGHTS: Record<AtsCriterionId, number> = { name: 7, email: 15, phone: 8, headings: 20, dates: 15, layout: 15, alphabet: 10, translation: 10, extraction: 15, order: 15, characters: 5, found: 10, wordHeadings: 8, wordStructure: 8, wordLanguage: 4 };
 
 // ---- Section titles ---------------------------------------------------------
 
@@ -135,6 +138,14 @@ function criterionResults(input: AtsInput): Partial<Record<AtsCriterionId, Resul
         results.found = shareResult(found, wanted.length);
       }
     }
+  }
+  if (input.docx) {
+    const docx = input.docx;
+    results.wordHeadings = docx.headings > 0 ? { fraction: 1, status: 'pass', details: {} } : { fraction: 0, status: 'fail', details: {} };
+    const hidden = docx.tables + docx.textBoxes;
+    const structure = hidden > 0 ? 0 : docx.typedBullets > 0 ? 0.5 : 1;
+    results.wordStructure = { fraction: structure, status: statusFor(structure), details: { count: hidden, total: docx.typedBullets } };
+    results.wordLanguage = docx.languageDeclared ? { fraction: 1, status: 'pass', details: {} } : { fraction: 0, status: 'warn', details: {} };
   }
   return results;
 }

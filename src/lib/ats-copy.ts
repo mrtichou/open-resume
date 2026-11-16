@@ -54,6 +54,12 @@ export function atsText(criterion: AtsCriterion, t: Translator): AtsText {
       return { title: t('Clean characters'), detail: ok ? t('No stray characters in the extracted text.') : t('{count} characters (ligatures, hidden or unreadable symbols) may come out garbled in a scanner.', { count: details.count ?? 0 }), fix: ok ? undefined : { label: t('Change template'), view: 'template' } };
     case 'found':
       return { title: t('Contact details in the PDF'), detail: ok ? t('Your email and phone are found in the extracted text.') : t('Your email or phone cannot be found in the extracted text of the PDF.'), fix: ok ? undefined : { label: t('Open exports'), view: 'share' } };
+    case 'wordHeadings':
+      return { title: t('Word: real headings'), detail: ok ? t('The Word file marks its section titles as headings.') : t('The Word file has no real headings, so a scanner cannot tell where sections start.') };
+    case 'wordStructure':
+      return { title: t('Word: plain structure'), detail: ok ? t('The Word file has no table or text box, and its lists are real lists.') : t('The Word file has {count} tables or text boxes, or {total} typed bullets: scanners can skip or scramble them.', { count: details.count ?? 0, total: details.total ?? 0 }) };
+    case 'wordLanguage':
+      return { title: t('Word: language'), detail: ok ? t('The Word file declares its language.') : t('The Word file does not declare its language.') };
     case 'translation':
       return {
         title: t('Translation'),
