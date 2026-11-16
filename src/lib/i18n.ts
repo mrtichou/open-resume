@@ -1,5 +1,6 @@
 import { WORKSPACE_MESSAGES } from './workspace-messages.ts';
 import { DASHBOARD_MESSAGES } from './dashboard-messages.ts';
+import { ATS_MESSAGES } from './ats-messages.ts';
 import { CHECK_MESSAGES } from './check-messages.ts';
 import { VERSION_MESSAGES } from './version-messages.ts';
 import { IMPORT_MESSAGES } from './import-messages.ts';
@@ -10,6 +11,7 @@ export const TRANSLATIONS: Record<string, Record<string,string>> = {
   ...WORKSPACE_MESSAGES,
   ...DASHBOARD_MESSAGES,
   ...CHECK_MESSAGES,
+  ...ATS_MESSAGES,
   ...VERSION_MESSAGES,
   ...IMPORT_MESSAGES,
   ...JOB_MATCH_MESSAGES,

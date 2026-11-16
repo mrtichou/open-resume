@@ -135,3 +135,20 @@ test('every criterion has wording in every state, and a way to improve it unless
   }
   assert.ok(seen.size >= 12, `the test covered ${seen.size} states`);
 });
+
+test('every ATS text used by the interface is translated into all the other languages', async () => {
+  const { readFileSync } = await import('node:fs');
+  const { TRANSLATIONS: ATS_MESSAGES } = await import('../src/lib/i18n.ts');
+  const keys = new Set<string>();
+  for (const file of ['src/lib/ats-copy.ts', 'src/components/AtsEstimatePanel.tsx']) {
+    for (const match of readFileSync(file, 'utf8').matchAll(/\bt\(\s*'((?:[^'\\]|\\.)*)'/g)) keys.add(match[1]);
+  }
+  assert.ok(keys.size > 40);
+  const placeholders = (text: string) => [...text.matchAll(/\{(\w+)\}/g)].map(m => m[1]).sort().join();
+  for (const key of keys) {
+    const entry = ATS_MESSAGES[key];
+    assert.ok(entry, `missing translation: ${key}`);
+    for (const lang of ['zh', 'zh-TW', 'ja', 'ko', 'fr', 'ru']) assert.ok(entry[lang], `${lang}: ${key}`);
+    for (const lang of ['zh', 'ja', 'ko', 'fr', 'ru']) assert.equal(placeholders(entry[lang]), placeholders(key), `${lang} placeholders: ${key}`);
+  }
+});

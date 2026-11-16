@@ -12,7 +12,7 @@ export function atsText(criterion: AtsCriterion, t: Translator): AtsText {
   const ok = status === 'pass';
   switch (id) {
     case 'name':
-      return { title: t('Name'), detail: ok ? t('Your name is on the resume.') : t('Add your name: scanners use it to identify the candidate.'), fix: ok ? undefined : { label: t('Edit profile'), locate: 'profile' } };
+      return { title: t('Candidate name'), detail: ok ? t('Your name is on the resume.') : t('Add your name: scanners use it to identify the candidate.'), fix: ok ? undefined : { label: t('Edit profile'), locate: 'profile' } };
     case 'email':
       return { title: t('Email address'), detail: ok ? t('An email address was found.') : status === 'warn' ? t('The email address does not look valid.') : t('No email address: scanners and recruiters expect one.'), fix: ok ? undefined : { label: t('Edit profile'), locate: 'profile' } };
     case 'phone':
@@ -25,7 +25,7 @@ export function atsText(criterion: AtsCriterion, t: Translator): AtsText {
       };
     case 'dates':
       return {
-        title: t('Dates'),
+        title: t('Dates on entries'),
         detail: ok ? t('Every experience and education entry has dates.') : t('{count} of {total} entries have dates. Scanners use them to order your experience.', { count: details.count ?? 0, total: details.total ?? 0 }),
         fix: ok ? undefined : { label: t('Edit entries'), view: 'edit' },
       };
