@@ -31,3 +31,16 @@ export function applyLanguageChoice(view: string, choice: string, sourceLocale: 
 export function outputSummary(languageName: string, presetName: string | undefined, hasTranslations: boolean): string {
   return [hasTranslations ? languageName : '', presetName ?? ''].filter(Boolean).join(' · ');
 }
+
+/**
+ * The language the standard section titles (Experience, Skills...) of a resume are written in.
+ * A resume with variants has a language of its own, so changing the interface language must not rewrite
+ * its titles; an older resume without variants follows the interface language as before.
+ * Returns null when the app has no titles for that language (nothing is rewritten then).
+ */
+export function sectionTitleLanguage(variants: { sourceLocale?: string } | undefined, interfaceLanguage: string, known: (language: string) => boolean): string | null {
+  const language = variants ? (variants.sourceLocale ?? 'en') : interfaceLanguage;
+  if (known(language)) return language;
+  const base = language.split('-')[0];
+  return known(base) ? base : null;
+}

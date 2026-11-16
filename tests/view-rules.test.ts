@@ -47,3 +47,13 @@ test('the export reminder names the language and the preset, and is empty for a 
   assert.equal(outputSummary('English', undefined, false), '');
   assert.equal(outputSummary('English', '', false), '');
 });
+
+test('standard section titles follow the resume\'s own language, not the interface language', async () => {
+  const { sectionTitleLanguage } = await import('../src/lib/view-rules.ts');
+  const known = (language: string) => ['en', 'fr', 'zh'].includes(language);
+  assert.equal(sectionTitleLanguage({ sourceLocale: 'en' }, 'fr', known), 'en', 'a resume in English keeps English titles in a French interface');
+  assert.equal(sectionTitleLanguage({}, 'fr', known), 'en', 'no source language recorded: English, the default');
+  assert.equal(sectionTitleLanguage(undefined, 'fr', known), 'fr', 'an older resume without variants follows the interface');
+  assert.equal(sectionTitleLanguage({ sourceLocale: 'fr-CA' }, 'en', known), 'fr', 'a regional tag uses its base language');
+  assert.equal(sectionTitleLanguage({ sourceLocale: 'de' }, 'fr', known), null, 'no titles for that language: nothing is rewritten');
+});

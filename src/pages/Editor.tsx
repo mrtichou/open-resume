@@ -61,7 +61,8 @@ import { usePdfAnalysis } from '../lib/use-pdf-analysis.ts';
 import { estimateAts } from '../lib/ats-estimate.ts';
 import { exportBaseName } from '../lib/export-names.ts';
 import { exportWarnings } from '../lib/export-warnings.ts';
-import { effectiveLocale,outputSummary } from '../lib/view-rules.ts';
+import { RESUME_SECTION_LABELS } from '../resume-locales.ts';
+import { effectiveLocale,outputSummary,sectionTitleLanguage } from '../lib/view-rules.ts';
 import { useActiveLocale } from '../lib/use-active-locale.ts';
 import { addTranslationLocale,markTranslationCurrent,markTranslationReviewed,removeTranslationLocale,setItemSame,setItemTranslation,setProfileTranslation,setSectionLabelTranslation,setSourceLocale } from '../lib/translation-edit.ts';
 import { buildTranslationRows,isItemMarkedSame } from '../lib/translation-rows.ts';
@@ -469,9 +470,11 @@ export default function Editor({ resumeId }: {resumeId:string}) {
       if (!document.resume) return document;
       const kind = document.settings.titleKind || inferSystemResumeTitleKind(document.resume.title, document.settings.template);
       const mode = document.settings.titleMode || (kind === 'custom' ? 'custom' : 'auto');
-      const localized = localizeResumeSections(document.resume, lang);
-      return { ...document, resume: mode === 'auto' && kind !== 'custom'
-        ? { ...localized, title: localizeResumeTitle(kind, document.settings.template, lang) } : localized };
+      // A resume with its own language keeps its titles when the interface language changes.
+      const titleLanguage = sectionTitleLanguage(document.resume.variants, lang, language => language in RESUME_SECTION_LABELS);
+      const localized = titleLanguage ? localizeResumeSections(document.resume, titleLanguage) : document.resume;
+      return { ...document, resume: mode === 'auto' && kind !== 'custom' && titleLanguage
+        ? { ...localized, title: localizeResumeTitle(kind, document.settings.template, titleLanguage) } : localized };
     });
   }, [lang, resume, settings.template, settings.titleKind, settings.titleMode]);
 
