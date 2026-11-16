@@ -1,6 +1,7 @@
 import type * as React from 'react';
 import { memo,useEffect,useRef,useState } from 'react';
-import { RESUME_TEMPLATES,localizeTemplateTag } from '../data.ts';
+import { RESUME_TEMPLATES,TEMPLATE_VARIANTS,localizeTemplateTag } from '../data.ts';
+import { SIDE_BAND_HEADER_VARIANTS } from '../lib/template-layout.ts';
 import { useTheme } from '../lib/theme.tsx';
 import type { ResumePreview } from './ResumePreview.tsx';
 import type { Resume,ResumeSettings,ResumeTemplate,Setter } from '../types.ts';
@@ -64,6 +65,7 @@ export function EditorTemplatePicker({ resume, settings, onSettings, Preview }: 
     className={`min-w-0 overflow-hidden rounded-md border text-left outline-none focus-visible:ring-2 focus-visible:ring-ring ${selected ? 'border-primary ring-1 ring-primary' : 'border-border'}`}>
     <div className="relative"><Thumbnail template={template} resume={resume} settings={settings} Preview={Preview} />
       {!template.free && <Badge className="absolute right-1 top-1" variant="secondary">PRO</Badge>}
+      {SIDE_BAND_HEADER_VARIANTS.has(TEMPLATE_VARIANTS[template.id] ?? '') && <Badge className="absolute bottom-1 left-1" variant="secondary" title={t('The name and contact details sit in a side band. Scanners that read by position may mix them with the body; a one-column template is safer for them.')}>{t('Side band')}</Badge>}
     </div>
     <div className="flex items-center gap-1 border-t border-border p-2">
       <span className="min-w-0 flex-1 truncate text-xs">{template.label[lang]}</span>
